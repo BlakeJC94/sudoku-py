@@ -3,7 +3,23 @@
 Main file
 """
 
-# Imports
+
+
+
+
+
+def get_col(rows, col_index):
+    col = list()
+    for row in rows:
+        col.append(row[col_index])
+    return col
+
+
+def get_block(rows, row_index, col_index):
+    block = list()
+    # ...
+    return block
+
 # Read sudoku puzzle from data
 with open('input.txt','r') as f:
     lines = f.readlines()
@@ -26,12 +42,15 @@ print(dim)
 
 
 # Preallocate possibility array
-possibilities = ['']*len(puzzle)
+possibilities = [['']*(dim^2)]*len(rows)
+print(possibilities)
 
 # Loop over each row
 for row_index, row in enumerate(rows):
     for col_index in range(len(row)):
-        col =
+        col = get_col(rows, col_index)
+        block = get_block(rows, row_index, col_index)
+
 
 
 
