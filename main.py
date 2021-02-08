@@ -19,7 +19,7 @@ class Sudoku(object):
                 puzzle = puzzle + row
 
         length = len(row)
-        dim = (length == 4)*2 + (length == 3)*3
+        dim = (length == 4)*2 + (length == 9)*3
 
         return puzzle, dim
 
@@ -37,7 +37,7 @@ class Sudoku(object):
 
             if not ((row_number+1) % self.dim):
                 if row_number < self.dim**2 - 1:
-                    row_output = row_output + '\n' + '-'*(self.dim**3 - 1)
+                    row_output = row_output + '\n' + '-'*(2*(self.dim**2) - 1)
 
             print(row_output)
 
@@ -81,7 +81,7 @@ class Sudoku(object):
         return possibilities
 
     def solve(self):
-        total_sweeps = 10
+        total_sweeps = 1000
         sweep = True
         sweep_num = 0
 
@@ -101,55 +101,69 @@ class Sudoku(object):
                 break
 
             for puzzle_index in range(len(self.puzzle)):
-                possibilities = self.get_possibilities(puzzle_index)
-                print(len(possibilities))
+                if self.puzzle[puzzle_index] == 0:
 
-                if len(possibilities) == 1:
-                    self.puzzle[puzzle_index] = possibilities[0]
-                    change_made = True
-                # elif len(possibilities) == 0:
-                #     print("ERROR")
-                #     # return to last state and try again
-                #     # checkpoint_index -= 1
-                #     # print(checkpoint_index)
-                #     # self.puzzle = checkpoints_puzzle[checkpoint_index]
-                #     # possibilities_list = checkpoints_possibilities[checkpoint_index]
-                #     break
-                else:
-                    possibility_sweep[puzzle_index] = possibilities
+                    possibilities = self.get_possibilities(puzzle_index)
+
+                    if len(possibilities) > 1:
+                        possibility_sweep[puzzle_index] = possibilities
+
+                    elif len(possibilities) == 1:
+                        self.puzzle[puzzle_index] = possibilities[0]
+                        change_made = True
+
+                    elif len(possibilities) == 0:
+                        print("INDETERMINENT, restore previous guess")
+                        print(len(checkpoints_puzzle))
+                        self.puzzle = checkpoints_puzzle[checkpoint_index]
+                        checkpoints_puzzle.pop()
+                        possibility_sweep = checkpoints_possibilities[checkpoint_index]
+                        checkpoints_possibilities.pop()
+                        checkpoint_index -= 1
+                        if checkpoint_index < 0:
+                            print("ERROR")
+                            sweep = False
+                            raise ValueError("checkpoint_index must be positive")
+                        break
 
             print(f"\nCompleted sweep {sweep_num}")
-            self.display()
-
-            if not change_made and min(self.puzzle) > 0:
-                print("Puzzle solved!")
-                sweep = False
-                break
 
             if not change_made:
-                print("Multiple possibilities")
-                # save puzzle state
-                checkpoint_index += 1
-                checkpoints_puzzle.append(self.puzzle)
 
-                # find index with lowest number of possibilities
-                selected_index = 0
-                for i, possibility in enumerate(possibility_sweep):
-                    print(possibility_sweep[selected_index])
-                    # import pdb; pdb.set_trace()
-                    if len(possibility) < len(possibility_sweep[selected_index]):
-                        selected_index = i
+                if min(self.puzzle) > 0:
+                    print("Puzzle solved!")
+                    self.display()
+                    sweep = False
+                else:
+                    print("Multiple possibilities")
+                    self.display()
+                    # save puzzle state
+                    print("INCREASE CHKIND")
+                    checkpoint_index += 1
+                    checkpoints_puzzle.append(self.puzzle)
+                    print(len(checkpoints_puzzle))
+                    print(checkpoint_index)
 
-                # guess and remove from possibility list
-                self.puzzle[selected_index] = possibility_sweep[selected_index][-1]
-                possibility_sweep[selected_index].pop()
+                    # find index with lowest number of possibilities
+                    selected_index = 0
+                    for i, possibility in enumerate(possibility_sweep):
+                        # import pdb; pdb.set_trace()
+                        if len(possibility_sweep[selected_index]) < 1:
+                            selected_index = i
+                        if len(possibility) < len(possibility_sweep[selected_index]):
+                            if len(possibility) > 0:
+                                selected_index = i
 
-                checkpoints_possibilities.append(possibility_sweep)
-                checkpoint_index += 1
+                    # guess and remove from possibility list
+                    self.puzzle[selected_index] = possibility_sweep[selected_index][-1]
+                    possibility_sweep[selected_index].pop()
+                    checkpoints_possibilities.append(possibility_sweep)
 
         pass
 
 
-file_path = './input.txt'
+file_path = './3_dim_hard.txt'
 sudoku = Sudoku(file_path)
+# import pdb; pdb.set_trace()
+sudoku.display()
 sudoku.solve()
