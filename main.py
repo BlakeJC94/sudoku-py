@@ -70,33 +70,82 @@ class Sudoku(object):
 
         return block
 
+    def get_possibilities(self, puzzle_index):
+        possibilities = set(range(1,self.dim**2+1))
+        row = set(self.get_row(puzzle_index))
+        col = set(self.get_col(puzzle_index))
+        block = set(self.get_block(puzzle_index))
+
+        present = block.union(row).union(col)
+        possibilities = list(possibilities.difference(present))
+        return possibilities
+
     def solve(self):
         total_sweeps = 10
-        for sweep in range(total_sweeps):
+        sweep = True
+        sweep_num = 0
 
+        checkpoint_index = 0
+        checkpoints_puzzle = list()
+        checkpoints_puzzle.append(self.puzzle)
+        checkpoints_possibilities = list()
+        checkpoints_possibilities.append([''])
+
+        while sweep:
+            # start sweep
             change_made = False
-            for puzzle_index in range(len(self.puzzle)):
-                possibilities = set(range(1,self.dim**2+1))
-                row = set(self.get_row(puzzle_index))
-                col = set(self.get_col(puzzle_index))
-                block = set(self.get_block(puzzle_index))
+            sweep_num += 1
+            possibility_sweep = ['']*len(self.puzzle)
+            if sweep_num > total_sweeps:
+                print("exceeded total_sweeps")
+                break
 
-                present = block.union(row).union(col)
-                possibilities = list(possibilities.difference(present))
+            for puzzle_index in range(len(self.puzzle)):
+                possibilities = self.get_possibilities(puzzle_index)
+                print(len(possibilities))
 
                 if len(possibilities) == 1:
                     self.puzzle[puzzle_index] = possibilities[0]
                     change_made = True
+                # elif len(possibilities) == 0:
+                #     print("ERROR")
+                #     # return to last state and try again
+                #     # checkpoint_index -= 1
+                #     # print(checkpoint_index)
+                #     # self.puzzle = checkpoints_puzzle[checkpoint_index]
+                #     # possibilities_list = checkpoints_possibilities[checkpoint_index]
+                #     break
+                else:
+                    possibility_sweep[puzzle_index] = possibilities
 
-            print(f"\nCompleted sweep {sweep+1}")
+            print(f"\nCompleted sweep {sweep_num}")
             self.display()
 
             if not change_made and min(self.puzzle) > 0:
                 print("Puzzle solved!")
+                sweep = False
                 break
 
             if not change_made:
                 print("Multiple possibilities")
+                # save puzzle state
+                checkpoint_index += 1
+                checkpoints_puzzle.append(self.puzzle)
+
+                # find index with lowest number of possibilities
+                selected_index = 0
+                for i, possibility in enumerate(possibility_sweep):
+                    print(possibility_sweep[selected_index])
+                    # import pdb; pdb.set_trace()
+                    if len(possibility) < len(possibility_sweep[selected_index]):
+                        selected_index = i
+
+                # guess and remove from possibility list
+                self.puzzle[selected_index] = possibility_sweep[selected_index][-1]
+                possibility_sweep[selected_index].pop()
+
+                checkpoints_possibilities.append(possibility_sweep)
+                checkpoint_index += 1
 
         pass
 
