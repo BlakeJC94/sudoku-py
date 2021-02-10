@@ -1,13 +1,14 @@
 class Sudoku(object):
     def __init__(self, file_path):
         self.file_path = file_path
+        self.output_path = './output.txt'
         self.puzzle, self.dim = self.load_puzzle(file_path)
         self.hist_index = 0
         self.puzzle_hist = list()
         self.puzzle_hist.append(self.puzzle)
         self.poss_hist = list()
         self.poss_hist.append(['']*len(self.puzzle))
-        self.total_sweeps = 1000
+        self.total_sweeps = 10000
 
     def load_puzzle(self, file_path):
         with open(file_path,'r') as f:
@@ -26,24 +27,6 @@ class Sudoku(object):
         dim = (length == 4)*2 + (length == 9)*3
 
         return puzzle, dim
-
-    def display(self):
-        for row_number in range(self.dim**2):
-            row = self.get_row(row_number*self.dim**2)
-            row_output = str()
-            for row_index, row_element in enumerate(row):
-                row_output = row_output + str(row_element)
-                if not ((row_index+1) % self.dim):
-                    if row_index < self.dim**2 - 1:
-                        row_output = row_output + '|'
-                else:
-                    row_output = row_output + ','
-
-            if not ((row_number+1) % self.dim):
-                if row_number < self.dim**2 - 1:
-                    row_output = row_output + '\n' + '-'*(2*(self.dim**2) - 1)
-
-            print(row_output)
 
     def get_row(self, index):
         row_number = (index // self.dim**2)
@@ -118,10 +101,45 @@ class Sudoku(object):
         self.puzzle[selected_puzzle_index] = guess
         pass
 
+    def get_row_str(self, row_index, row):
+        row_str = str()
+        for index, element in enumerate(row):
+            row_str += str(element)
+            if (index+1) % self.dim == 0:
+                if index+1 == self.dim**2:
+                    row_str += '\n'
+                else:
+                    row_str +='|'
+            else:
+                row_str += ','
+
+        line = ('-'*(2*self.dim-1)+'+')*(self.dim-1)+'-'*(2*self.dim - 1)+'\n'
+        if ((row_index+1) % self.dim == 0) and (row_index < self.dim**2-1):
+            row_str += line
+
+        return row_str
+
+    def print_solution(self, *output_path):
+        if output_path:
+            target = open(output_path[0], 'w')
+
+        rows = [self.get_row(i) for i in range(0, self.dim**4, self.dim**2)]
+        for row_index, row in enumerate(rows):
+            row_str = self.get_row_str(row_index, row)
+
+            if output_path:
+                target.write(row_str)
+            else:
+                print(row_str[:-1])
+
+        if output_path:
+            target.close()
+
+        pass
 
     def solve(self):
         print("Solving puzzle")
-        self.display()
+        self.print_solution()
         sweep, sweep_num = True, 0
         while sweep:
             # start sweep
@@ -165,10 +183,11 @@ class Sudoku(object):
 
                 if min(self.puzzle) > 0:
                     print("Puzzle solved!")
-                    self.display()
+                    self.print_solution()
+                    self.print_solution(self.output_path)
                     sweep = False
                 else:
                     print("Multiple possibilities")
-                    self.display()
+                    self.print_solution()
                     self.guess(possibility_sweep)
         pass
