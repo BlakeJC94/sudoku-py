@@ -11,7 +11,7 @@ class Sudoku(object):
         self.total_sweeps = 10000
 
     def load_puzzle(self, file_path):
-        with open(file_path,'r') as f:
+        with open(file_path, 'r') as f:
             lines = f.readlines()
 
         rows = list()
@@ -19,7 +19,7 @@ class Sudoku(object):
         for line in lines:
             if line[0] != "-":
                 row = line.strip().replace("|", ",").split(",")
-                row = list(map(int,row))
+                row = list(map(int, row))
                 rows.append(row)
                 puzzle = puzzle + row
 
@@ -29,9 +29,10 @@ class Sudoku(object):
         return puzzle, dim
 
     def get_row(self, index):
-        row_number = (index // self.dim**2)
-        start = row_number*(self.dim**2)
-        end = start + (self.dim**2)
+        dim = self.dim
+        row_number = (index // dim**2)
+        start = row_number*(dim**2)
+        end = start + (dim**2)
         row = self.puzzle[start:end]
         return row
 
@@ -42,23 +43,24 @@ class Sudoku(object):
         return col
 
     def get_block(self, index):
+        dim = self.dim
         # find topleft corner index
-        row_number = index // self.dim**3
-        col_number = index % self.dim**2
-        block_index = self.dim**3 * row_number + self.dim * (col_number // self.dim)
+        row_number = index // dim**3
+        col_number = index % dim**2
+        block_index = dim**3 * row_number + dim * (col_number // dim)
 
         block = list()
-        for i in range(self.dim**2):
-            selected_index = block_index + (i % self.dim) + i % (self.dim ** 2)
-            row_add = i % self.dim
-            col_add = i // self.dim
-            selected_index = block_index + row_add + col_add * self.dim**2
+        for i in range(dim**2):
+            selected_index = block_index + (i % dim) + i % (dim ** 2)
+            row_add = i % dim
+            col_add = i // dim
+            selected_index = block_index + row_add + col_add * dim**2
             block.append(self.puzzle[selected_index])
 
         return block
 
     def get_possibilities(self, puzzle_index):
-        possibilities = set(range(1,self.dim**2+1))
+        possibilities = set(range(1, self.dim**2+1))
         row = set(self.get_row(puzzle_index))
         col = set(self.get_col(puzzle_index))
         block = set(self.get_block(puzzle_index))
@@ -89,7 +91,7 @@ class Sudoku(object):
 
     def guess(self, possibility_sweep):
         # find puzzle index with smallest number of possibilities
-        possibility_counts = list(map(len,possibility_sweep))
+        possibility_counts = list(map(len, possibility_sweep))
         non_zero_counts = [i for i in possibility_counts if i != 0]
         selected_puzzle_index = possibility_counts.index(min(non_zero_counts))
         # get guess and remove from possibilities
@@ -102,19 +104,20 @@ class Sudoku(object):
         pass
 
     def get_row_str(self, row_index, row):
+        dim = self.dim
         row_str = str()
         for index, element in enumerate(row):
             row_str += str(element)
-            if (index+1) % self.dim == 0:
-                if index+1 == self.dim**2:
+            if (index+1) % dim == 0:
+                if index+1 == dim**2:
                     row_str += '\n'
                 else:
-                    row_str +='|'
+                    row_str += '|'
             else:
                 row_str += ','
 
-        line = ('-'*(2*self.dim-1)+'+')*(self.dim-1)+'-'*(2*self.dim - 1)+'\n'
-        if ((row_index+1) % self.dim == 0) and (row_index < self.dim**2-1):
+        line = ('-'*(2*dim-1)+'+')*(dim-1)+'-'*(2*dim - 1)+'\n'
+        if ((row_index+1) % dim == 0) and (row_index < dim**2-1):
             row_str += line
 
         return row_str
@@ -123,7 +126,8 @@ class Sudoku(object):
         if output_path:
             target = open(output_path[0], 'w')
 
-        rows = [self.get_row(i) for i in range(0, self.dim**4, self.dim**2)]
+        dim = self.dim
+        rows = [self.get_row(i) for i in range(0, dim**4, dim**2)]
         for row_index, row in enumerate(rows):
             row_str = self.get_row_str(row_index, row)
 
@@ -166,7 +170,7 @@ class Sudoku(object):
                         print("INDETERMENENT, restore previous guess")
                         possibility_sweep = self.restore()
                         # if one possibility in checkpoint, make change
-                        possibility_counts = list(map(len,possibility_sweep))
+                        possibility_counts = list(map(len, possibility_sweep))
                         single_counts = [i for i in possibility_counts if i == 1]
                         if len(single_counts) > 0:
                             # import pdb; pdb.set_trace()
