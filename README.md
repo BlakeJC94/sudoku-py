@@ -1,5 +1,5 @@
 # sudoku-py
-Sudoku solver for practicing python programming (chellenge: without NumPy)
+Sudoku solver for practicing python programming (challenge: without NumPy)
 
 ## Running the code
 
