@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 from typing import Union, List
 
@@ -8,43 +9,34 @@ class Sudoku:
     Puzzles are internally stored as a flat list of numbers
 
     """
-    def __init__(self, puzzle_file: Union[str, Path]):
+    def __init__(self, input: Union[str, Path]):
         """Constructor for the Sudoku class.
 
         Args:
             puzzle_file: Location of data to load.
         """
-        if isinstance(puzzle_file, str):
-            puzzle_file = Path(puzzle_file)
-        # TODO move asserts for path to load_puzzle method
-        # assert input_path.exists(), "Expected `input_path` to point to a file that exists"
-        self.puzzle_path = puzzle_file
-        # self.output_path = './output.txt'  # TODO expose in `save` method
-
-        self.puzzle = self.load_puzzle()
+        self.puzzle = self.load(input)  # TODO rename puzzle to data
 
         assert len(self.puzzle) in [16, 81], \
             "`Sudoku` only supports puzzles of order 2 or 3."
-        self.order = 2 if len(
-            self.puzzle) == 16 else 3  # TODO change dim to order
+        self.order = 2 if len(self.puzzle) == 16 else 3
 
         self.size = self.order**2  # row/col/block size
         self.total = self.size**2  # total number of elements in sudoku puzzle
 
-        # TODO move these all to Solver class
-        # self.hist_index = 0
-        # self.puzzle_hist = list()
-        # self.puzzle_hist.append(self.puzzle)
-        # self.poss_hist = list()
-        # self.poss_hist.append(['']*len(self.puzzle))
-        # self.total_sweeps = 10000
-
-    def load_puzzle(self):
+    def load(self, input):  # TODO update docs
         """Load puzzle from supplied `puzzle_file`."""
-        assert self.puzzle_path.exists(), \
-            "Expected `puzzle_path` to point to a file that exists."
+        if isinstance(input, list):
+            return [int(element) for element in input]
 
-        with open(self.puzzle_path, 'r', encoding='utf-8') as f:
+        # if the input isn't a list, it's probably a path
+        if isinstance(input, str):
+            input = Path(input)
+
+        assert isinstance(input, Path) and input.exists(), \
+            "Expected `input` to point to a file that exists."
+
+        with open(input, 'r', encoding='utf-8') as f:
             lines = f.readlines()
 
         puzzle = []
@@ -57,11 +49,11 @@ class Sudoku:
 
         return puzzle
 
+    def __eq__(self, sudoku: Sudoku) -> bool:
+        return all(i == j for i, j in zip(self.puzzle, sudoku.puzzle))
+
     def __len__(self) -> int:
         return self.size
-
-    def __repr__(self) -> str:
-        return f'Sudoku(puzzle_path={self.puzzle_path})'
 
     def __str__(self) -> str:
         puzzle_string = ""
@@ -97,6 +89,9 @@ class Sudoku:
         output = str(self)
         with open(output_path, 'r', encoding='utf-8') as f:
             f.write(output)
+
+    def copy(self) -> Sudoku:
+        return Sudoku(input=self.puzzle)
 
     def get_row(self, index) -> List[int]:
         """Returns elements in row `index`."""
