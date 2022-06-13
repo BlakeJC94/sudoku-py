@@ -12,10 +12,11 @@ class Puzzle:
 
     """
     def __init__(self, input: Union[str, Path]):
-        """Constructor for the Sudoku class.
+        """Constructor.
 
         Args:
-            puzzle_file: Location of data to load.
+            input: Either a list of numbers representing a puzzle, or
+                a path to a file containing a puzzle.
         """
         self.data = self.load(input)
 
@@ -26,28 +27,25 @@ class Puzzle:
         self.size = self.order ** 2  # row/col/block size
         self.total = self.size ** 2  # total number of elements in sudoku puzzle
 
-    def load(self, input):  # TODO update docs
-        """Load puzzle from supplied `puzzle_file`."""
+    def load(self, input: Union[str, Path, List[int]]) -> List[int]:
+        """Load puzzle from supplied input.
+
+        Args:
+            input: see __init__ docs.
+        """
         if isinstance(input, list):
             return [int(element) for element in input]
 
-        # if the input isn't a list, it's probably a path
         if isinstance(input, str):
             input = Path(input)
 
         assert isinstance(input, Path) and input.exists(), \
-            "Expected `input` to point to a file that exists."
-
-        with open(input, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+            "Expected path `input` to point to a file that exists."
 
         puzzle = []
-        # TODO use regular expressions to make this loading more robust
-        for line in lines:
-            if line[0] != "-":
-                row = line.strip().replace("|", ",").split(",")
-                row = [int(d) for d in row]
-                puzzle.extend(row)
+        with open(input, 'r', encoding='utf-8') as puzzle_file:
+            for line in puzzle_file.readlines():
+                puzzle += re.findall(r'\d+', line)
 
         return puzzle
 
