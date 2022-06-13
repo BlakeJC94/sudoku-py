@@ -80,7 +80,11 @@ class Puzzle:
             row_string += str(element)
             if (index + 1) % self.order == 0:
                 if index + 1 == self.size:
+                    if row_index == len(self) - 1:
+                        break
                     row_string += '\n'
+                    row_string += ('--' * (self.order - 1) + '-+') * (self.order - 1)
+                    row_string += '--' * (self.order - 1) + '-'
                 else:
                     row_string += '|'
             else:

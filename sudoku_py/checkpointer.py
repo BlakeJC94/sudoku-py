@@ -1,7 +1,7 @@
 """Classes and methods for saving checkpoints of sudoku puzzles."""
 from typing import List, Tuple, Dict
 
-from .sudoku import Puzzle
+from .puzzle import Puzzle
 
 
 class EmptyCheckpointer(Exception):

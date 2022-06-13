@@ -1,2 +1,2 @@
-from .sudoku import Sudoku
-# from .solver import Solver
+from .puzzle import Puzzle
+from .solver import Solver
