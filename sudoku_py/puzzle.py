@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Union
 
 
+# TODO support loading puzzles as a list of rows
 class Puzzle:
     """Representation of a sudoku puzzle.
 
