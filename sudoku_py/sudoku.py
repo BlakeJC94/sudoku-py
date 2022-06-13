@@ -1,9 +1,11 @@
+"""Classes for storing and managing puzzle data."""
 from __future__ import annotations
+
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Set
 
 
-class Sudoku:
+class Puzzle:
     """Representation of a sudoku puzzle.
 
     Puzzles are internally stored as a flat list of numbers
@@ -15,14 +17,14 @@ class Sudoku:
         Args:
             puzzle_file: Location of data to load.
         """
-        self.puzzle = self.load(input)  # TODO rename puzzle to data
+        self.data = self.load(input)
 
-        assert len(self.puzzle) in [16, 81], \
+        assert len(self.data) in [16, 81], \
             "`Sudoku` only supports puzzles of order 2 or 3."
-        self.order = 2 if len(self.puzzle) == 16 else 3
+        self.order = 2 if len(self.data) == 16 else 3
 
-        self.size = self.order**2  # row/col/block size
-        self.total = self.size**2  # total number of elements in sudoku puzzle
+        self.size = self.order ** 2  # row/col/block size
+        self.total = self.size ** 2  # total number of elements in sudoku puzzle
 
     def load(self, input):  # TODO update docs
         """Load puzzle from supplied `puzzle_file`."""
@@ -49,16 +51,23 @@ class Sudoku:
 
         return puzzle
 
-    def __eq__(self, sudoku: Sudoku) -> bool:
-        return all(i == j for i, j in zip(self.puzzle, sudoku.puzzle))
+    def __getitem__(self, index: int) -> int:
+        return self.data[index]
+
+    def __setitem__(self, index: int, element: int):
+        assert 0 <= element <= self.size, \
+            f"Only allowed to set values between 0 and {self.size}."
+        self.data[index] = element
+
+    def __eq__(self, puzzle: Puzzle) -> bool:
+        return all(i == j for i, j in zip(self.data, puzzle.data))
 
     def __len__(self) -> int:
         return self.size
 
     def __str__(self) -> str:
         puzzle_string = ""
-
-        for row_index in range(self.size):
+        for row_index in range(len(self)):
             row_string = self._get_row_str(row_index)
             puzzle_string += row_string + '\n'
 
@@ -66,8 +75,7 @@ class Sudoku:
 
     def _get_row_str(self, row_index) -> str:
         row_string = ""
-
-        row = self.get_row(row_index)
+        row = [self[row_index * len(self) + i] for i in range(len(self))]
         for index, element in enumerate(row):
             row_string += str(element)
             if (index + 1) % self.order == 0:
@@ -77,10 +85,9 @@ class Sudoku:
                     row_string += '|'
             else:
                 row_string += ','
-
         return row_string
 
-    def save_to_file(self, output_path: Union[str, Path]):
+    def save(self, output_path: Union[str, Path]):
         """Save current puzzle state to file.
         TODO"""
         if isinstance(output_path, str):
@@ -90,33 +97,30 @@ class Sudoku:
         with open(output_path, 'r', encoding='utf-8') as f:
             f.write(output)
 
-    def copy(self) -> Sudoku:
-        return Sudoku(input=self.puzzle)
+    def copy(self) -> Puzzle:
+        return Puzzle(input=self.data)
 
-    def get_row(self, index) -> List[int]:
-        """Returns elements in row `index`."""
-        row_number = (index // self.size)
-        start, end = row_number * self.size, (row_number + 1) * self.size
-        return self.puzzle[start:end].copy()
+    def is_solved(self) -> bool:
+        return all(i == 0 for i in self.data)
 
-    def get_col(self, index) -> List[int]:
-        """Returns elements in row `index`."""
-        start = index % self.size
-        return self.puzzle[start::self.size].copy()
+    def get_empty_indices(self) -> List[int]:
+        return [i for i in range(len(self) ** 2) if self[i] == 0]
 
-    def get_block(self, index) -> List[int]:
-        # find topleft corner index
-        row_number = index // (self.order**3)
-        col_number = index % self.size
-        block_index = (self.order**3) * row_number + self.order * (
-            col_number // self.order)
+    def get_options(self, index) -> List[int]:
+        """"""  # TODO
+        row_start = index // len(self)
+        row_indices = [row_start * len(self) + i for i in range(len(self))]
 
-        block = []
-        for i in range(self.size):
-            selected_index = block_index + (i % self.order) + i % self.size
-            row_add = i % self.order
-            col_add = i // self.order
-            selected_index = block_index + row_add + col_add * self.size
-            block.append(self.puzzle[selected_index])
+        col_start = index % len(self)
+        col_indices = [col_start + len(self) * i for i in range(self)]
 
-        return block
+        block_index = (self.order ** 3) * (index // self.order ** 3) \
+            + self.order * (col_start // self.order)
+        block_indices = [
+            block_index + (i % self.order) + (i // self.order) * len(self)
+            for i in range(len(self))
+        ]
+
+        indices = set(sum([row_indices, col_indices, block_indices]))
+        elements = set(self[i] for i in indices if self[i] != 0)
+        return [i + 1 for i in range(len(self)) if i + 1 not in elements]
