@@ -1,8 +1,9 @@
 """Classes for storing and managing puzzle data."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
-from typing import Union, List, Set
+from typing import List, Union
 
 
 class Puzzle:
@@ -11,14 +12,14 @@ class Puzzle:
     Puzzles are internally stored as a flat list of numbers
 
     """
-    def __init__(self, input: Union[str, Path]):
+    def __init__(self, input_data: Union[str, Path]):
         """Constructor.
 
         Args:
-            input: Either a list of numbers representing a puzzle, or
+            input_data: Either a list of numbers representing a puzzle, or
                 a path to a file containing a puzzle.
         """
-        self.data = self.load(input)
+        self.data = self.load(input_data)
 
         assert len(self.data) in [16, 81], \
             "`Sudoku` only supports puzzles of order 2 or 3."
@@ -27,23 +28,24 @@ class Puzzle:
         self.size = self.order ** 2  # row/col/block size
         self.total = self.size ** 2  # total number of elements in sudoku puzzle
 
-    def load(self, input: Union[str, Path, List[int]]) -> List[int]:
+    @staticmethod
+    def load(input_data: Union[str, Path, List[int]]) -> List[int]:
         """Load puzzle from supplied input.
 
         Args:
             input: see __init__ docs.
         """
-        if isinstance(input, list):
-            return [int(element) for element in input]
+        if isinstance(input_data, list):
+            return [int(element) for element in input_data]
 
-        if isinstance(input, str):
-            input = Path(input)
+        if isinstance(input_data, str):
+            input_data = Path(input_data)
 
-        assert isinstance(input, Path) and input.exists(), \
+        assert isinstance(input_data, Path) and input_data.exists(), \
             "Expected path `input` to point to a file that exists."
 
         puzzle = []
-        with open(input, 'r', encoding='utf-8') as puzzle_file:
+        with open(input_data, 'r', encoding='utf-8') as puzzle_file:
             for line in puzzle_file.readlines():
                 puzzle += re.findall(r'\d+', line)
 
@@ -92,11 +94,11 @@ class Puzzle:
             output_path = Path(output_path)
 
         output = str(self)
-        with open(output_path, 'r', encoding='utf-8') as f:
-            f.write(output)
+        with open(output_path, 'r', encoding='utf-8') as puzzle_file:
+            puzzle_file.write(output)
 
     def copy(self) -> Puzzle:
-        return Puzzle(input=self.data)
+        return Puzzle(input_data=self.data)
 
     def is_solved(self) -> bool:
         return all(i == 0 for i in self.data)
