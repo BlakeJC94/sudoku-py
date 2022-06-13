@@ -88,8 +88,7 @@ class Puzzle:
         return row_string
 
     def save(self, output_path: Union[str, Path]):
-        """Save current puzzle state to file.
-        TODO"""
+        """Save current puzzle state to file."""
         if isinstance(output_path, str):
             output_path = Path(output_path)
 
@@ -98,29 +97,58 @@ class Puzzle:
             puzzle_file.write(output)
 
     def copy(self) -> Puzzle:
+        """Return a duplicate."""
         return Puzzle(input_data=self.data)
 
     def is_solved(self) -> bool:
+        """Check if the puzzle has any empty cells."""
         return all(i == 0 for i in self.data)
 
     def get_empty_indices(self) -> List[int]:
+        """Get indices that correspond to empty cells."""
         return [i for i in range(len(self) ** 2) if self[i] == 0]
 
-    def get_options(self, index) -> List[int]:
-        """"""  # TODO
+    def _get_row_indices(self, index: int) -> List[int]:
         row_start = index // len(self)
-        row_indices = [row_start * len(self) + i for i in range(len(self))]
+        return [row_start * len(self) + i for i in range(len(self))]
 
+    def _get_col_indices(self, index: int) -> List[int]:
         col_start = index % len(self)
-        col_indices = [col_start + len(self) * i for i in range(self)]
+        return [col_start + len(self) * i for i in range(self)]
 
+    def _get_block_indices(self, index: int) -> List[int]:
         block_index = (self.order ** 3) * (index // self.order ** 3) \
-            + self.order * (col_start // self.order)
-        block_indices = [
+            + self.order * ((index % len(self)) // self.order)
+        return [
             block_index + (i % self.order) + (i // self.order) * len(self)
             for i in range(len(self))
         ]
 
-        indices = set(sum([row_indices, col_indices, block_indices]))
+    def get_row_col_block_indices(self, index: int) -> List[int]:
+        """Get indices of the elements in the same row, column, and block as
+        the input index."""
+        row_indices = self._get_row_indices(index)
+        col_indices = self._get_col_indices(index)
+        block_indices = self._get_block_indices(index)
+        return list(set(sum([row_indices, col_indices, block_indices])))
+
+    def get_options(self, index: int) -> List[int]:
+        """Get options for puzzle cell index."""
+        if self[index] != 0:
+            return []
+
+        indices = self.get_row_col_block_indices(index)
         elements = set(self[i] for i in indices if self[i] != 0)
         return [i + 1 for i in range(len(self)) if i + 1 not in elements]
+
+    def is_valid(self) -> bool:
+        """Check if the puzzle is valid."""
+        valid = True
+        for index in self:
+            indices = self.get_row_col_block_indices(index)
+            values = [self[i] for i in indices if self[i] != 0]
+            if len(values) != len(set(values)):
+                valid = False
+                break
+
+        return valid
