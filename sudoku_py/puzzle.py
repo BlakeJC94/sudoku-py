@@ -48,7 +48,7 @@ class Puzzle:
         puzzle = []
         with open(input_data, 'r', encoding='utf-8') as puzzle_file:
             for line in puzzle_file.readlines():
-                puzzle += re.findall(r'\d+', line)
+                puzzle += [int(i) for i in re.findall(r'\d+', line)]
 
         return puzzle
 
@@ -70,26 +70,39 @@ class Puzzle:
         puzzle_string = ""
         for row_index in range(len(self)):
             row_string = self._get_row_str(row_index)
-            puzzle_string += row_string + '\n'
+            puzzle_string += row_string
 
         return puzzle_string
 
     def _get_row_str(self, row_index) -> str:
         row_string = ""
         row = [self[row_index * len(self) + i] for i in range(len(self))]
+
+        # Create top bar if at top of puzzle
+        if row_index == 0:
+            row_string += '+'
+            row_string += ('-' * (self.order + 3) + '-+') * self.order
+            row_string += '\n'
+
+        # Create string for row elements
+        row_string += '| '
         for index, element in enumerate(row):
-            row_string += str(element)
+            row_string += str(element) if int(element) != 0 else '.'
+
+            # Add column seperators
             if (index + 1) % self.order == 0:
-                if index + 1 == self.size:
-                    if row_index == len(self) - 1:
-                        break
-                    row_string += '\n'
-                    row_string += ('--' * (self.order - 1) + '-+') * (self.order - 1)
-                    row_string += '--' * (self.order - 1) + '-'
-                else:
-                    row_string += '|'
-            else:
-                row_string += ','
+                row_string += ' |'
+            if index + 1 < len(self):
+                row_string += ' '
+            if index + 1 == len(self):
+                row_string += '\n'
+
+        # Create bottom bar
+        if (row_index + 1) % self.order == 0:
+            row_string += '+'
+            row_string += ('-' * (self.order + 3) + '-+') * self.order
+            row_string += '\n'
+
         return row_string
 
     def save(self, output_path: Union[str, Path]):
