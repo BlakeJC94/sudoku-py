@@ -18,7 +18,7 @@ class Solver:
         self.patience = patience
         self.checkpointer = Checkpointer()
 
-    def solve(self, puzzle: Puzzle) -> Puzzle:
+    def __call__(self, puzzle: Puzzle) -> Puzzle:
         """Solves the sudoku puzzle.
 
         Guesses are managed per loop in a dictionary that maps puzzle indices
@@ -33,6 +33,7 @@ class Solver:
         print("Solving puzzle")
         print(puzzle)
 
+        puzzle = puzzle.copy()
         loops_without_changes = 0
         for loop in range(self.max_loops):
 
@@ -54,7 +55,7 @@ class Solver:
                 if len(options) > 1:
                     guesses[index] = options
 
-            print(f"\nCompleted loop {loop}")
+            print(f"\nCompleted loop {loop + 1}")
             print(puzzle)
             if puzzle.is_solved():
                 break

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import List, Union, Tuple
 
 
-# TODO support loading puzzles as a list of rows
 class Puzzle:
     """Representation of a sudoku puzzle.
 
@@ -94,7 +93,7 @@ class Puzzle:
         for index, element in enumerate(row):
             row_string += str(element) if int(element) != 0 else '.'
 
-            # Add column seperators
+            # Add column separators
             if (index + 1) % self.order == 0:
                 row_string += ' |'
             if index + 1 < len(self):
@@ -106,7 +105,8 @@ class Puzzle:
         if (row_index + 1) % self.order == 0:
             row_string += '+'
             row_string += ('-' * (self.order + 3) + '-+') * self.order
-            row_string += '\n'
+            if row_index + 1 < len(self):
+                row_string += '\n'
 
         return row_string
 
