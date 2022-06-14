@@ -120,7 +120,7 @@ class Puzzle:
 
     def is_solved(self) -> bool:
         """Check if the puzzle has any empty cells."""
-        return all(i == 0 for i in self.data)
+        return all(i != 0 for i in self.data)
 
     def get_empty_indices(self) -> List[int]:
         """Get indices that correspond to empty cells."""
