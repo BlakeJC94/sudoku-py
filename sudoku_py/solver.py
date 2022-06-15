@@ -1,9 +1,11 @@
 """Classes and methods for solving sudoku puzzles."""
+import logging
 from typing import List, Tuple, Dict
 
 from .puzzle import Puzzle
 from .checkpointer import Checkpointer
 
+logger = logging.getLogger(__name__)
 
 class Solver:
     """Manages solving operations when given a Sudoku object."""
@@ -30,8 +32,8 @@ class Solver:
         Returns:
             Fully solved puzzle if successful, unsolved puzzle if unsuccessful.
         """
-        print("Solving puzzle")
-        print(puzzle)
+        logger.info("Solving Puzzle")
+        logger.info(str(puzzle))
 
         puzzle = puzzle.copy()
         loops_without_changes = 0
@@ -43,7 +45,7 @@ class Solver:
                 options = puzzle.get_options(index)
 
                 if len(options) == 0:
-                    print("INDETERMENENT, restore previous guess")
+                    logger.info("INDETERMENENT, restore previous guess")
                     puzzle, guesses, changed_when_restored = self.restore()
                     if not changed_when_restored:
                         break
@@ -55,8 +57,9 @@ class Solver:
                 if len(options) > 1:
                     guesses[index] = options
 
-            print(f"\nCompleted loop {loop + 1}")
-            print(puzzle)
+            logger.info(f"\nCompleted loop {loop + 1}")
+            logger.info(str(puzzle))
+
             if puzzle.is_solved():
                 break
 
@@ -64,11 +67,11 @@ class Solver:
                 loops_without_changes += 1
 
             if loops_without_changes >= self.patience:
-                print("Multiple possibilities")
+                logger.info("Multiple possibilities")
                 puzzle = self.guess(puzzle, guesses)
 
         if not puzzle.is_solved():
-            print("Unsolved after reaching maximum number of loops.")
+            logger.warning("Unsolved after reaching maximum number of loops.")
 
         return puzzle
 
@@ -90,11 +93,13 @@ class Solver:
             Puzzle with one cell estimated.
         """
         # find puzzle index with smallest number of possibilities
-        min_count = min(len(v) for v in guesses.values())
+        min_count = min(len(v) for v in guesses.values() if len(v) > 0)
         index = next(k for k, v in guesses.items() if len(v) == min_count)
 
         # get guess and remove from possibilities
         opts = guesses[index]
+        if len(opts) == 0:
+            breakpoint()
         guess = opts.pop()
         guesses[index] = opts  # This might be a bit of paranoia
 
