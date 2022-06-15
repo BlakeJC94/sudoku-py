@@ -78,6 +78,18 @@ class Puzzle:
 
         return puzzle_string
 
+    def __repr__(self) -> str:
+        puzzle_string = ""
+        for row_index in range(len(self)):
+            start, end = row_index * len(self), (row_index + 1) * len(self)
+            row_string = "Puzzle([" if row_index == 0 else " " * 8
+            row_string += ', '.join([str(element) for element in self.data[start:end]]).strip()
+            row_string += ",\n" if row_index < len(self) - 1 else ""
+            puzzle_string += row_string
+
+        puzzle_string += '])'
+        return puzzle_string
+
     def _get_row_str(self, row_index) -> str:
         row_string = ""
         row = [self[row_index * len(self) + i] for i in range(len(self))]
