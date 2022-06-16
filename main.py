@@ -1,8 +1,19 @@
-from sudoku import Sudoku
+from sudoku_py import Puzzle, Solver
 
-file_path = './input.txt'
-sudoku = Sudoku(file_path)
 
-# Change total number of sweeps here if needed
-# sudoku.total_sweeps = 10000
-sudoku.solve()
+INPUT = 'puzzles/3_dim/hard/input_0.txt'
+
+if __name__ == '__main__':
+    bar = Solver()
+    foo = Puzzle(INPUT)
+
+    print("Given puzzle:")
+    print(foo)
+
+    print("Solving...")
+    baz = bar(foo)
+
+    print("Solution:")
+    print(baz)
+
+    print("PASS! :)")

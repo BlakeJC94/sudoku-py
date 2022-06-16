@@ -7,9 +7,16 @@ from .checkpointer import Checkpointer
 
 logger = logging.getLogger(__name__)
 
+
+class InvalidPuzzleError(Exception):
+    """Raised when no options are found for a cell in a puzzle."""
+    pass
+
+# TODO rename checkpointer to guesser
 class Solver:
     """Manages solving operations when given a Sudoku object."""
-    def __init__(self, max_loops: int = 10000, patience: int = 2):
+
+    def __init__(self, max_loops: int = 10000):
         """Constructor.
 
         Args:
@@ -17,7 +24,6 @@ class Solver:
             patience: number of loops without changes to wait before guessing.
         """
         self.max_loops = max_loops
-        self.patience = patience
         self.checkpointer = Checkpointer()
 
     def __call__(self, puzzle: Puzzle) -> Puzzle:
@@ -32,54 +38,48 @@ class Solver:
         Returns:
             Fully solved puzzle if successful, unsolved puzzle if unsuccessful.
         """
-        logger.info("Solving Puzzle")
-        logger.info(str(puzzle))
+        if puzzle.is_solved():
+            return puzzle
 
         puzzle = puzzle.copy()
-        loops_without_changes = 0
         for loop in range(self.max_loops):
+            try:
+                puzzle, change_made = self.fill_singles(puzzle)
+            except InvalidPuzzleError:
+                puzzle = self.checkpointer.pop()
+                continue
+            if not change_made:
+                logger.info("Multiple possibilities, taking a guess")
+                puzzle = self.guess(puzzle)
 
-            guesses = {}
-            change_made = False
-            for index in puzzle.get_empty_indices():
-                options = puzzle.get_options(index)
-
-                if len(options) == 0:
-                    logger.info("INDETERMENENT, restore previous guess")
-                    puzzle, guesses, changed_when_restored = self.restore()
-                    if not changed_when_restored:
-                        break
-
-                if len(options) == 1:
-                    puzzle[index] = options[0]
-                    change_made = True
-
-                if len(options) > 1:
-                    guesses[index] = options
-
-            logger.info(f"\nCompleted loop {loop + 1}")
-            logger.info(str(puzzle))
-
+            logger.info(f"Completed loop {loop + 1}")
             if puzzle.is_solved():
                 break
-
-            if not change_made:
-                loops_without_changes += 1
-
-            if loops_without_changes >= self.patience:
-                logger.info("Multiple possibilities")
-                puzzle = self.guess(puzzle, guesses)
 
         if not puzzle.is_solved():
             logger.warning("Unsolved after reaching maximum number of loops.")
 
         return puzzle
 
-    def guess(
-        self,
-        puzzle: Puzzle,
-        guesses: List[Tuple[int, List[int]]],
-    ) -> Puzzle:
+    # TODO fix docstrings
+    @staticmethod
+    def fill_singles(puzzle: Puzzle) -> Tuple[Puzzle, bool]:
+        """"""
+        change_made = False
+        for empty_index in puzzle.get_empty_indices():
+            options = puzzle.get_options(empty_index)
+
+            if len(options) == 0:
+                raise InvalidPuzzleError("INDETERMENENT, restore previous guess")
+
+            if len(options) == 1:
+                puzzle[empty_index] = options[0]
+                change_made = True
+
+        return puzzle, change_made
+
+    # TODO update docs
+    def guess(self, puzzle: Puzzle) -> Puzzle:
         """Select cell with minimal number of options and estimate value
         before creating a checkpoint.
 
@@ -87,27 +87,22 @@ class Solver:
 
         Args:
             puzzle: unsolved puzzle.
-            guesses: dictionary mapping puzzle indices to possibilities.
 
         Returns:
             Puzzle with one cell estimated.
         """
-        # find puzzle index with smallest number of possibilities
-        min_count = min(len(v) for v in guesses.values() if len(v) > 0)
-        index = next(k for k, v in guesses.items() if len(v) == min_count)
+        guesses = []
+        for empty_index in puzzle.get_empty_indices():
+            options = puzzle.get_options(empty_index)
+            if len(options) > 1:
+                guesses.append((empty_index, options))
 
-        # get guess and remove from possibilities
-        opts = guesses[index]
-        if len(opts) == 0:
-            breakpoint()
-        guess = opts.pop()
-        guesses[index] = opts  # This might be a bit of paranoia
+        # find puzzle index with smallest number of possibilities
+        min_options = min(len(options) for _, options in guesses)
+        index, options = next((i, opts) for i, opts in guesses if len(opts) == min_options)
 
         # save checkpoint
-        self.checkpointer.stash(puzzle, guesses)
-
-        # insert guess
-        puzzle[index] = guess
+        puzzle = self.checkpointer.stash(puzzle, index, options)
         return puzzle
 
     def restore(self) -> Tuple[Puzzle, Dict[int, List[int]], bool]:
