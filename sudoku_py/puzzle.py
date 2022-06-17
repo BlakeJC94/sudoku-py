@@ -163,7 +163,7 @@ class Puzzle:
 
         puzzle_string = ""
         for row_index in range(len(self)):
-            row_string = self._get_row_str(row_index, unicode=True, left_spaces=2)
+            row_string = self._get_row_str(row_index, unicode=unicode, left_spaces=0)
             puzzle_string += row_string
 
         with open(output_path, "r", encoding="utf-8") as puzzle_file:
