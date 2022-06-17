@@ -1,18 +1,15 @@
 """Classes and methods for solving sudoku puzzles."""
 import logging
 from typing import List, Tuple, Dict
+from warnings import warn
 
 from .puzzle import Puzzle
 from .checkpointer import Checkpointer
+from .exceptions import InvalidPuzzleError, UnsolvedWarning
 
 logger = logging.getLogger(__name__)
 
 
-class InvalidPuzzleError(Exception):
-    """Raised when no options are found for a cell in a puzzle."""
-    pass
-
-# TODO rename checkpointer to guesser
 class Solver:
     """Manages solving operations when given a Sudoku object."""
 
@@ -44,28 +41,40 @@ class Solver:
         puzzle = puzzle.copy()
         for loop in range(self.max_loops):
             try:
-                puzzle, change_made = self.fill_singles(puzzle)
+                puzzle_output = self.fill_singles(puzzle)
             except InvalidPuzzleError:
                 puzzle = self.checkpointer.pop()
                 continue
-            if not change_made:
-                logger.info("Multiple possibilities, taking a guess")
-                puzzle = self.guess(puzzle)
 
-            logger.info(f"Completed loop {loop + 1}")
+            if puzzle_output == puzzle:
+                logger.info("Multiple possibilities, taking a guess")
+                puzzle_output = self.guess(puzzle_output)
+
+            puzzle = puzzle_output
+
+            logger.info("Completed loop %d", loop + 1)
             if puzzle.is_solved():
                 break
 
         if not puzzle.is_solved():
-            logger.warning("Unsolved after reaching maximum number of loops.")
+            warn("Unsolved after reaching maximum number of loops.", UnsolvedWarning)
 
         return puzzle
 
-    # TODO fix docstrings
     @staticmethod
-    def fill_singles(puzzle: Puzzle) -> Tuple[Puzzle, bool]:
-        """"""
-        change_made = False
+    def fill_singles(puzzle: Puzzle) -> Puzzle:
+        """Iterate over puzzle cells sequentially, fill cells that only have one possibility.
+
+        Args:
+            puzzle: An unsolved puzzle
+
+        Return:
+            Puzzle with some cells filled in.
+        """
+        if puzzle.is_solved():
+            return puzzle
+
+        puzzle_output = puzzle.copy()
         for empty_index in puzzle.get_empty_indices():
             options = puzzle.get_options(empty_index)
 
@@ -73,12 +82,10 @@ class Solver:
                 raise InvalidPuzzleError("INDETERMENENT, restore previous guess")
 
             if len(options) == 1:
-                puzzle[empty_index] = options[0]
-                change_made = True
+                puzzle_output[empty_index] = options[0]
 
-        return puzzle, change_made
+        return puzzle_output
 
-    # TODO update docs
     def guess(self, puzzle: Puzzle) -> Puzzle:
         """Select cell with minimal number of options and estimate value
         before creating a checkpoint.
@@ -99,7 +106,9 @@ class Solver:
 
         # find puzzle index with smallest number of possibilities
         min_options = min(len(options) for _, options in guesses)
-        index, options = next((i, opts) for i, opts in guesses if len(opts) == min_options)
+        index, options = next(
+            (i, opts) for i, opts in guesses if len(opts) == min_options
+        )
 
         # save checkpoint
         puzzle = self.checkpointer.stash(puzzle, index, options)
