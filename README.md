@@ -6,6 +6,7 @@ Small Sudoku library for practicing programming in Python.
     * Load puzzles from `txt` files or as a Python List
     * Includes methods to verify valid puzzles
 * Basic iterative non-random solver
+* Generate random puzzles
 
 
 ## Quickstart
@@ -101,6 +102,5 @@ $ cd sudoku-py
 
 ## TODO
 
-* Write a generator script
 * Implement a CLI endpoint
 * GUI? (low priority)
