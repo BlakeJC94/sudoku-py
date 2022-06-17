@@ -4,7 +4,9 @@ from __future__ import annotations
 import re
 from itertools import product
 from pathlib import Path
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
+
+from .exceptions import InvalidPuzzleError
 
 
 class Puzzle:
@@ -13,6 +15,7 @@ class Puzzle:
     Puzzles are internally stored as a flat list of numbers
 
     """
+
     def __init__(self, input_data: Union[str, Path]):
         """Constructor.
 
@@ -22,14 +25,17 @@ class Puzzle:
         """
         self.data = self.load(input_data)
 
-        assert len(self.data) in [16, 81], \
-            "`Puzzle` only supports puzzles of order 2 or 3."
+        assert len(self.data) in [
+            16,
+            81,
+        ], "`Puzzle` only supports puzzles of order 2 or 3."
         self.order = 2 if len(self.data) == 16 else 3
 
-        self.size = self.order ** 2  # row/col/block size
-        self.total = self.size ** 2  # total number of elements in sudoku puzzle
+        self.size = self.order**2  # row/col/block size
+        self.total = self.size**2  # total number of elements in sudoku puzzle
 
-        assert self.is_valid(), "Expected a valid input."
+        if not self.is_valid():
+            raise InvalidPuzzleError
 
     @staticmethod
     def load(input_data: Union[str, Path, List[int]]) -> List[int]:
@@ -44,24 +50,26 @@ class Puzzle:
         if isinstance(input_data, str):
             input_data = Path(input_data)
 
-        assert isinstance(input_data, Path) and input_data.exists(), \
-            "Expected path `input` to point to a file that exists."
+        assert (
+            isinstance(input_data, Path) and input_data.exists()
+        ), "Expected path `input` to point to a file that exists."
 
         puzzle = []
-        with open(input_data, 'r', encoding='utf-8') as puzzle_file:
+        with open(input_data, "r", encoding="utf-8") as puzzle_file:
             for line in puzzle_file.readlines():
-                puzzle += [int(i) for i in re.findall(r'\d+', line)]
+                puzzle += [int(i) for i in re.findall(r"\d+", line)]
 
         return puzzle
 
     def __getitem__(self, index: Union[int, Tuple[int, int]]) -> int:
         if isinstance(index, tuple) and len(index) == 2:
-            return self.data[index[0]*len(self) + index[1]]
+            return self.data[index[0] * len(self) + index[1]]
         return self.data[index]
 
     def __setitem__(self, index: Union[int, Tuple[int, int]], element: int):
-        assert 0 <= element <= self.size, \
-            f"Only allowed to set values between 0 and {self.size}."
+        assert (
+            0 <= element <= self.size
+        ), f"Only allowed to set values between 0 and {self.size}."
         self.data[index] = element
 
     def __eq__(self, puzzle: Puzzle) -> bool:
@@ -73,7 +81,7 @@ class Puzzle:
     def __str__(self) -> str:
         puzzle_string = ""
         for row_index in range(len(self)):
-            row_string = self._get_row_str(row_index)
+            row_string = self._get_row_str(row_index, unicode=True, left_spaces=2)
             puzzle_string += row_string
 
         return puzzle_string
@@ -82,54 +90,84 @@ class Puzzle:
         puzzle_string = ""
         for row_index in range(len(self)):
             start, end = row_index * len(self), (row_index + 1) * len(self)
-            row_string = "Puzzle([" if row_index == 0 else " " * 8
-            row_string += ', '.join([str(element) for element in self.data[start:end]]).strip()
-            row_string += ",\n" if row_index < len(self) - 1 else ""
-            puzzle_string += row_string
+            puzzle_string = "Puzzle([" if row_index == 0 else " " * 8
+            puzzle_string += ", ".join(
+                [str(element) for element in self.data[start:end]]
+            ).strip()
+            puzzle_string += ",\n" if row_index < len(self) - 1 else ""
 
-        puzzle_string += '])'
+        puzzle_string += "])"
         return puzzle_string
 
-    def _get_row_str(self, row_index) -> str:
+    def _get_row_str(
+        self, row_index: int, unicode: bool = True, left_spaces: int = 2
+    ) -> str:
         row_string = ""
-        row = [self[row_index * len(self) + i] for i in range(len(self))]
+
+        left_spaces = max(0, int(left_spaces))
+        if unicode:
+            border = ["┌", "┐", "┘", "└", "├", "┬", "┤", "┴", "─", "┼", "│"]
+        else:
+            border = ["+", "+", "+", "+", "+", "+", "+", "+", "-", "+", "|"]
 
         # Create top bar if at top of puzzle
         if row_index == 0:
-            row_string += '+'
-            row_string += ('-' * (self.order + 3) + '-+') * self.order
-            row_string += '\n'
+            row_string += " " * left_spaces
+            row_string += border[0]
+            row_string += (border[8] * (self.order + 3) + border[8] + border[5]) * (
+                self.order - 1
+            )
+            row_string += border[8] * (self.order + 3) + border[8] + border[1]
+            row_string += "\n"
 
         # Create string for row elements
-        row_string += '| '
+        row = [self[row_index * len(self) + i] for i in range(len(self))]
+        row_string += " " * left_spaces
+        row_string += border[10] + " "
         for index, element in enumerate(row):
-            row_string += str(element) if int(element) != 0 else '.'
+            row_string += str(element) if int(element) != 0 else "."
 
             # Add column separators
             if (index + 1) % self.order == 0:
-                row_string += ' |'
+                row_string += " " + border[10]
             if index + 1 < len(self):
-                row_string += ' '
+                row_string += " "
             if index + 1 == len(self):
-                row_string += '\n'
+                row_string += "\n"
 
         # Create bottom bar
         if (row_index + 1) % self.order == 0:
-            row_string += '+'
-            row_string += ('-' * (self.order + 3) + '-+') * self.order
+            row_string += " " * left_spaces
+
             if row_index + 1 < len(self):
-                row_string += '\n'
+                row_string += border[4]
+                row_string += (border[8] * (self.order + 3) + border[8] + border[9]) * (
+                    self.order - 1
+                )
+                row_string += border[8] * (self.order + 3) + border[8] + border[6]
+            else:
+                row_string += border[3]
+                row_string += (border[8] * (self.order + 3) + border[8] + border[7]) * (
+                    self.order - 1
+                )
+                row_string += border[8] * (self.order + 3) + border[8] + border[2]
+
+            row_string += "\n"
 
         return row_string
 
-    def save(self, output_path: Union[str, Path]):
+    def save(self, output_path: Union[str, Path], unicode: bool = False):
         """Save current puzzle state to file."""
         if isinstance(output_path, str):
             output_path = Path(output_path)
 
-        output = str(self)
-        with open(output_path, 'r', encoding='utf-8') as puzzle_file:
-            puzzle_file.write(output)
+        puzzle_string = ""
+        for row_index in range(len(self)):
+            row_string = self._get_row_str(row_index, unicode=True, left_spaces=2)
+            puzzle_string += row_string
+
+        with open(output_path, "r", encoding="utf-8") as puzzle_file:
+            puzzle_file.write(puzzle_string)
 
     def copy(self) -> Puzzle:
         """Return a duplicate."""
@@ -142,7 +180,7 @@ class Puzzle:
     def get_empty_indices(
         self,
         ij_index: bool = False,
-    ) -> Union[List[int], List[Tuple[int,int]]]:
+    ) -> Union[List[int], List[Tuple[int, int]]]:
         """Get indices that correspond to empty cells."""
         if ij_index:
             ij_range = product(range(len(self)), range(len(self)))
@@ -159,8 +197,9 @@ class Puzzle:
         return [col_start + len(self) * i for i in range(len(self))]
 
     def _get_block_indices(self, index: int) -> List[int]:
-        block_index = (self.order ** 3) * (index // self.order ** 3) \
-            + self.order * ((index % len(self)) // self.order)
+        block_index = (self.order**3) * (index // self.order**3) + self.order * (
+            (index % len(self)) // self.order
+        )
         return [
             block_index + (i % self.order) + (i // self.order) * len(self)
             for i in range(len(self))
@@ -192,9 +231,7 @@ class Puzzle:
         """Check if the puzzle is valid."""
         valid = True
         empty_indices = self.get_empty_indices()
-        non_empty_indices = [
-            i for i in range(self.total) if i not in empty_indices
-        ]
+        non_empty_indices = [i for i in range(self.total) if i not in empty_indices]
         for index in non_empty_indices:
             indices = self._get_row_col_block_indices(index)
             values = [self[i] for i in indices if self[i] != 0 and i != index]
