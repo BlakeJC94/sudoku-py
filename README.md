@@ -24,7 +24,7 @@ $ pip install .
 ## Quickstart
 
 This package comes equipped with a command-line endpoint:
-```
+```bash
 $ sudoku --help
 # usage: sudoku [-h] [-d DIFFICULTY] [-i INPUT] [-o OUTPUT] [-a] [-l LOOPS]
 #
@@ -45,7 +45,7 @@ $ sudoku --help
 ```
 
 Generate a random puzzle:
-```
+```bash
 # difficulty can optionally be specified with `-d` (value between 1 and 5)
 $ sudoku
 #   ┌───────┬───────┬───────┐
@@ -64,7 +64,7 @@ $ sudoku
 ```
 
 Solve a puzzle:
-```
+```bash
 # outputs can be written by using `-o`
 $ sudoku -i input.txt
 #   ┌───────┬───────┬───────┐
