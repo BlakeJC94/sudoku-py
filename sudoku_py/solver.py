@@ -10,17 +10,18 @@ from .exceptions import InvalidPuzzleError, UnsolvedWarning, EmptyCheckpointer
 logger = logging.getLogger(__name__)
 
 
+# TODO experiment with yield and next(..)
 class Solver:
     """Manages solving operations when given a Sudoku object."""
 
-    def __init__(self, max_loops: int = 10000):
+    def __init__(self, loops: int = 10000):
         """Constructor.
 
         Args:
-            max_loops: number of loops to do over every cell before giving up.
+            loops: number of loops to do over every cell before giving up.
             patience: number of loops without changes to wait before guessing.
         """
-        self.max_loops = max_loops
+        self.loops = loops
         self.checkpointer = Checkpointer()
 
     def __call__(
@@ -46,7 +47,7 @@ class Solver:
         solutions = []
         input_puzzle = puzzle.copy()
         puzzle = puzzle.copy()
-        for loop in range(self.max_loops):
+        for loop in range(self.loops):
             try:
                 puzzle_output = self.fill_singles(puzzle)
             except InvalidPuzzleError:

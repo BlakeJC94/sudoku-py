@@ -15,7 +15,69 @@ Small Sudoku library for practicing programming in Python.
 ```bash
 $ git clone https://github.com/BlakeJC94/sudoku-py.git
 $ cd sudoku-py
+$ pip install .
 ```
+
+## Quickstart
+
+This package comes equipped with a command-line endpoint:
+```
+$ sudoku --help
+# usage: sudoku [-h] [-d DIFFICULTY] [-i INPUT] [-o OUTPUT] [-a] [-l LOOPS]
+#
+# Generate and solve sudoku puzzles.
+#
+# optional arguments:
+#   -h, --help            show this help message and exit
+#   -d DIFFICULTY, --difficulty DIFFICULTY
+#                         Difficulty for puzzle generator (any number between 1 and 5, default is 3).
+#   -i INPUT, --input INPUT
+#                         Path to file. Will attempt to solve puzzle at this location if specified.
+#   -o OUTPUT, --output OUTPUT
+#                         Output file path (print outputs to stdout if not given).
+#   -a, --all-solutions   Whether to solve for all solutions for an input.
+#   -l LOOPS, --loops LOOPS
+#                         Maximum number of loops for Solver (default value is 10000).
+```
+
+Generate a random puzzle:
+```
+# difficulty can optionally be specified with `-d` (value between 1 and 5)
+$ sudoku
+#   ┌───────┬───────┬───────┐
+#   │ 6 . 8 │ 7 . 3 │ . 9 5 │
+#   │ 4 . 5 │ 9 8 1 │ 2 . . │
+#   │ 1 . 7 │ . 2 5 │ . . . │
+#   ├───────┼───────┼───────┤
+#   │ 9 . . │ . 7 . │ . . 3 │
+#   │ . . . │ 1 9 . │ 8 5 . │
+#   │ . . 1 │ 5 . 2 │ . . 7 │
+#   ├───────┼───────┼───────┤
+#   │ . 7 9 │ . . 8 │ 3 . . │
+#   │ . 8 4 │ . 1 . │ 5 6 9 │
+#   │ . . . │ 3 5 9 │ 7 . . │
+#   └───────┴───────┴───────┘
+```
+
+Solve a puzzle:
+```
+# outputs can be written by using `-o`
+$ sudoku -i input.txt
+#   ┌───────┬───────┬───────┐
+#   │ 5 9 1 │ 3 8 2 │ 6 7 4 │
+#   │ 3 8 6 │ 7 4 1 │ 9 2 5 │
+#   │ 7 2 4 │ 6 5 9 │ 1 8 3 │
+#   ├───────┼───────┼───────┤
+#   │ 6 3 8 │ 4 9 5 │ 2 1 7 │
+#   │ 4 5 2 │ 1 7 8 │ 3 9 6 │
+#   │ 1 7 9 │ 2 3 6 │ 4 5 8 │
+#   ├───────┼───────┼───────┤
+#   │ 9 6 5 │ 8 2 4 │ 7 3 1 │
+#   │ 2 1 3 │ 5 6 7 │ 8 4 9 │
+#   │ 8 4 7 │ 9 1 3 │ 5 6 2 │
+#   └───────┴───────┴───────┘
+```
+
 
 ## Generating Puzzles
 
@@ -123,8 +185,15 @@ Example: Content of `output.txt`,
 +-------+-------+-------+
 ```
 
+## Possible extensions
 
-## TODO
+- [x] Random puzzle generator
+- [x] Optionally find multiple solutions if they exist
+- [x] CLI endpoint with `argparse`
+- [ ] Samurai sudoku interface?
+- [ ] GUI?
 
-* Implement a CLI endpoint
-* GUI? (low priority)
+
+## Contributing
+
+This is a small personal project, but pull requests are welcome.

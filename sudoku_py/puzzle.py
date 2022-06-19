@@ -166,7 +166,7 @@ class Puzzle:
             row_string = self._get_row_str(row_index, unicode=unicode, left_spaces=0)
             puzzle_string += row_string
 
-        with open(output_path, "r", encoding="utf-8") as puzzle_file:
+        with open(output_path, "w", encoding="utf-8") as puzzle_file:
             puzzle_file.write(puzzle_string)
 
     def copy(self) -> Puzzle:
