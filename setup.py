@@ -5,7 +5,7 @@ with open("README.md", 'r') as f:
 
 setup(
     name="sudoku_py",
-    version='0.8',
+    version='1.0.0',
     description="A sudoku generator and solver implmented in Python",
     long_description=long_description,
     author='BlakeJC94',
