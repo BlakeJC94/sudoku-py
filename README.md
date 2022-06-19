@@ -195,6 +195,7 @@ Example: Content of `output.txt`,
 - [x] Optionally find multiple solutions if they exist
 - [x] CLI endpoint with `argparse`
 - [ ] Samurai sudoku interface?
+- [ ] Proper testing suite with pytest
 - [ ] GUI?
 
 
