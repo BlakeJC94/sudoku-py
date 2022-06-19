@@ -9,7 +9,7 @@ from .exceptions import InvalidPuzzleError, EmptyCheckpointer
 
 logger = logging.getLogger(__name__)
 
-# TODO docs
+
 class Generator:
     """"""
 

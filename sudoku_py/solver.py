@@ -1,11 +1,11 @@
 """Classes and methods for solving sudoku puzzles."""
 import logging
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 from warnings import warn
 
 from .puzzle import Puzzle
 from .checkpointer import Checkpointer
-from .exceptions import InvalidPuzzleError, UnsolvedWarning
+from .exceptions import InvalidPuzzleError, UnsolvedWarning, EmptyCheckpointer
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,11 @@ class Solver:
         self.max_loops = max_loops
         self.checkpointer = Checkpointer()
 
-    def __call__(self, puzzle: Puzzle) -> Puzzle:
+    def __call__(
+        self,
+        puzzle: Puzzle,
+        all_solutions=False,
+    ) -> Union[Puzzle, List[Puzzle]]:
         """Solves the sudoku puzzle.
 
         Guesses are managed per loop in a dictionary that maps puzzle indices
@@ -33,18 +37,24 @@ class Solver:
             puzzle: Unsolved sudoku puzzle
 
         Returns:
-            Fully solved puzzle if successful, unsolved puzzle if unsuccessful.
+            Fully solved puzzle if successful, unsolved puzzle if unsuccessful. If `all_solutions`
+            is True, returns a list of all solutions.
         """
         if puzzle.is_solved():
             return puzzle
 
+        solutions = []
+        input_puzzle = puzzle.copy()
         puzzle = puzzle.copy()
         for loop in range(self.max_loops):
             try:
                 puzzle_output = self.fill_singles(puzzle)
             except InvalidPuzzleError:
-                puzzle = self.checkpointer.pop()
-                continue
+                try:
+                    puzzle = self.checkpointer.pop()
+                    continue
+                except EmptyCheckpointer:
+                    break
 
             if puzzle_output == puzzle:
                 logger.debug("Multiple possibilities, taking a guess")
@@ -54,12 +64,24 @@ class Solver:
 
             logger.debug("Completed loop %d", loop + 1)
             if puzzle.is_solved():
-                break
+                solutions.append(puzzle.copy())
+                if all_solutions:
+                    try:
+                        puzzle = self.checkpointer.pop()
+                        continue
+                    except EmptyCheckpointer:
+                        break
+                else:
+                    break
 
-        if not puzzle.is_solved():
+        if len(solutions) == 0:
             warn("Unsolved after reaching maximum number of loops.", UnsolvedWarning)
+            return input_puzzle
 
-        return puzzle
+        if all_solutions:
+            return solutions
+
+        return solutions[0]
 
     @staticmethod
     def fill_singles(puzzle: Puzzle) -> Puzzle:

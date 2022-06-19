@@ -98,9 +98,12 @@ Using the Python endpoint,
 #   │ 2 1 7 │ 5 6 3 │ 8 4 9 │
 #   │ 8 4 3 │ 9 1 7 │ 5 6 2 │
 #   └───────┴───────┴───────┘
-## Save output
+## Save output (fancy output with `solved_puzzle.save('output.txt', unicode=True)`)
 >>> solved_puzzle.save('output.txt')
-## (fancy output with `solved_puzzle.save('output.txt', unicode=True)`)
+## Find all solutions
+>>> solutions = solver(unsolved_puzzle, all_solutions=True)
+>>> print(f'Number of solutions found: {len(solutions)}')
+# Number of solutions found: 1
 ```
 
 Example: Content of `output.txt`,
