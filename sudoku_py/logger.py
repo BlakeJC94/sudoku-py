@@ -4,7 +4,7 @@ import logging
 
 def setup_logging():
     """Logger setup."""
-    log_level = logging.ERROR
+    log_level = logging.INFO
 
     logger = logging.getLogger()
     logging.basicConfig(

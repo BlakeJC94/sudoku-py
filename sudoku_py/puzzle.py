@@ -90,7 +90,7 @@ class Puzzle:
         puzzle_string = ""
         for row_index in range(len(self)):
             start, end = row_index * len(self), (row_index + 1) * len(self)
-            puzzle_string = "Puzzle([" if row_index == 0 else " " * 8
+            puzzle_string += "Puzzle([" if row_index == 0 else " " * 8
             puzzle_string += ", ".join(
                 [str(element) for element in self.data[start:end]]
             ).strip()

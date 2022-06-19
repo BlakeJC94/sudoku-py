@@ -47,12 +47,12 @@ class Solver:
                 continue
 
             if puzzle_output == puzzle:
-                logger.info("Multiple possibilities, taking a guess")
+                logger.debug("Multiple possibilities, taking a guess")
                 puzzle_output = self.guess(puzzle_output)
 
             puzzle = puzzle_output
 
-            logger.info("Completed loop %d", loop + 1)
+            logger.debug("Completed loop %d", loop + 1)
             if puzzle.is_solved():
                 break
 

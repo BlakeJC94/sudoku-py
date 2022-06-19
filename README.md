@@ -9,7 +9,7 @@ Small Sudoku library for practicing programming in Python.
 * Generate random puzzles
 
 
-## Quickstart
+## Installation
 
 0. Clone the repo to your system
 ```bash
@@ -17,12 +17,38 @@ $ git clone https://github.com/BlakeJC94/sudoku-py.git
 $ cd sudoku-py
 ```
 
-1. Write the puzzle you'd like to solve as a `txt` file
+## Generating Puzzles
+
+Using the Python endpoint,
+```python
+>>> from sudoku_py import Generator
+>>> generator = Generator()
+>>> puzzle = generator.spawn(seed=123)
+>>> print(puzzle)
+#   ┌───────┬───────┬───────┐
+#   │ . 3 . │ . . 7 │ . 4 . │
+#   │ . . 9 │ . 8 4 │ . . . │
+#   │ 7 6 . │ 2 . 3 │ 8 . . │
+#   ├───────┼───────┼───────┤
+#   │ . 5 3 │ . 7 . │ . . . │
+#   │ 9 . . │ . 6 . │ . . . │
+#   │ 8 2 . │ 4 . . │ 1 7 9 │
+#   ├───────┼───────┼───────┤
+#   │ . . 2 │ . 5 . │ 4 . . │
+#   │ . 9 5 │ . . 8 │ . . 7 │
+#   │ 4 . . │ . 2 6 │ . . . │
+#   └───────┴───────┴───────┘
+```
+
+## Solving Puzzles
+
+Write the puzzle you'd like to solve as a `txt` file
     - Zeros indicate empty cells
     - Can be written in a comma-separated style (block separators optional)
     - Templates are provided in `./templates`
+
+Example: contents of `input.txt`,
 ```
-# input.txt
 0,0,1|0,0,2|0,7,0
 3,0,0|7,4,1|0,0,5
 7,2,0|0,0,9|0,8,3
@@ -36,8 +62,9 @@ $ cd sudoku-py
 0,4,0|9,0,0|5,0,0
 ```
 
-2. In a python session, import and create `Puzzle` and `Solver` objects
+Using the Python endpoint,
 ```python
+## Load the puzzle from data
 >>> from sudoku_py import Puzzle, Solver
 >>> unsolved_puzzle = Puzzle('input.txt')
 >>> print(unsolved_puzzle)
@@ -55,10 +82,7 @@ $ cd sudoku-py
 #   │ . 4 . │ 9 . . │ 5 . . │
 #   └───────┴───────┴───────┘
 >>> solver = Solver(max_loops=5000)
-```
-
-3. Solve puzzle by calling `Solver` with `Puzzle`
-```python
+## Call Solver on Puzzle
 >>> solved_puzzle = solver(unsolved_puzzle)
 >>> print(solved_puzzle)
 #   ┌───────┬───────┬───────┐
@@ -74,16 +98,13 @@ $ cd sudoku-py
 #   │ 2 1 7 │ 5 6 3 │ 8 4 9 │
 #   │ 8 4 3 │ 9 1 7 │ 5 6 2 │
 #   └───────┴───────┴───────┘
-```
-
-4. Save output with `save` method
-```python
+## Save output
 >>> solved_puzzle.save('output.txt')
-# Save fancy output with `solved_puzzle.save('output.txt', unicode=True)`
+## (fancy output with `solved_puzzle.save('output.txt', unicode=True)`)
 ```
 
+Example: Content of `output.txt`,
 ```
-# output.txt
 +-------+-------+-------+
 | 5 9 1 | 3 8 2 | 6 7 4 |
 | 3 8 6 | 7 4 1 | 9 2 5 |
