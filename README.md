@@ -11,7 +11,7 @@ Small Sudoku library for practicing programming in Python.
 
 ## Installation
 
-0. Clone the repo to your system
+Clone the repo to your system and install
 ```bash
 $ git clone https://github.com/BlakeJC94/sudoku-py.git
 $ cd sudoku-py
