@@ -2,11 +2,14 @@
 
 Small Sudoku library for practicing programming in Python.
 
-* API to handle sudoku puzzles in Python
-    * Load puzzles from `txt` files or as a Python List
-    * Includes methods to verify valid puzzles
-* Basic iterative non-random solver
-* Generate random puzzles
+* Basic CLI endpoint to generate and solve puzzles from the command line,
+* API to handle sudoku puzzles in Python,
+    * Load puzzles from `txt` files or as a Python List,
+    * Includes methods to verify valid puzzles,
+* Basic iterative non-random solver,
+    * Finds all possible solutions if requested,
+* Generate random puzzles,
+    * Optionally specify the difficulty,
 
 
 ## Installation
@@ -38,6 +41,7 @@ $ sudoku --help
 #   -a, --all-solutions   Whether to solve for all solutions for an input.
 #   -l LOOPS, --loops LOOPS
 #                         Maximum number of loops for Solver (default value is 10000).
+#   -s SEED, --seed SEED  Random number generation seed.
 ```
 
 Generate a random puzzle:

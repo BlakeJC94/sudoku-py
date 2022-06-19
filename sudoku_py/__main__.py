@@ -57,12 +57,19 @@ def main():
         required=False,
         default=10000,
     )
+    parser.add_argument(
+        "-s",
+        "--seed",
+        type=int,
+        help="Random number generation seed.",
+        required=False,
+    )
 
     args = parser.parse_args()
 
     if args.input is None:
         generator = Generator(difficulty=args.difficulty, loops=args.loops)
-        _generate_puzzle(generator, output=args.output)
+        _generate_puzzle(generator, output=args.output, rng_seed=args.seed)
     else:
         solver = Solver(loops=args.loops)
         _solve_puzzle(args.input, solver, args.all_solutions, args.output)
@@ -108,8 +115,9 @@ def _solve_puzzle(
 def _generate_puzzle(
     generator: Generator,
     output: Optional[str] = None,
+    rng_seed: Optional[int] = None,
 ) -> int:
-    puzzle = generator.spawn()
+    puzzle = generator.spawn(rng_seed=rng_seed)
     if output is None:
         print(puzzle)
     else:
